@@ -15,7 +15,7 @@ class FormParseNodeFactory(ParseNodeFactory):
         Returns:
             str: The content type to be deserialized
         """
-        return 'application/json'
+        return "application/x-www-form-urlencoded"
 
     def get_root_parse_node(self, content_type: str, content: bytes) -> ParseNode:
         """Creates a ParseNode from the given binary stream and content type
