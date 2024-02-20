@@ -18,3 +18,5 @@ yapf==0.40.2
 
 microsoft-kiota-abstractions==1.0.0
 
+pendulum==3.0.0
+
