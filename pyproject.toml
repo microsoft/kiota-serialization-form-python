@@ -1,0 +1,45 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "microsoft-kiota-serialization-form"
+authors = [{name = "Microsoft", email = "graphtooling+python@microsoft.com"}]
+dependencies = [
+    "microsoft-kiota_abstractions >=1.0.0,<2.0.0",
+]
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = ["kiota", "openAPI", "Microsoft", "Graph"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+dynamic = ["version", "description"]
+
+[project.urls]
+homepage = "https://github.com/microsoft/kiota#readme"
+repository = "https://github.com/microsoft/kiota-serialization-form-python"
+documentation = "https://microsoft.github.io/kiota/"
+
+[tool.flit.module]
+name = "kiota_serialization_form"
+
+[tool.mypy]
+warn_unused_configs = true
+files = "kiota_serialization_form"
+ignore_missing_imports = true
+
+[tool.yapf]
+based_on_style = "pep8"
+dedent_closing_brackets = true
+each_dict_entry_on_separate_line = true
+column_limit = 100
+
+[tool.isort]
+profile = "hug"
