@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 import warnings
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from enum import Enum
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from urllib.parse import unquote_plus
 from uuid import UUID
 
 import pendulum
 from kiota_abstractions.serialization import Parsable, ParsableFactory, ParseNode
-from urllib.parse import unquote_plus
 
 T = TypeVar("T")
 
@@ -19,13 +20,13 @@ K = TypeVar("K", bound=Enum)
 
 class FormParseNode(ParseNode, Generic[T, U]):
     """Represents a parse node that can be used to parse a form url encoded string."""
+
     def __init__(self, raw_value: str) -> None:
         self._raw_value = raw_value
         self._node = unquote_plus(raw_value)
         self._fields = self._get_fields(raw_value)
         self._on_before_assign_field_values: Optional[Callable[[Parsable], None]] = None
         self._on_after_assign_field_values: Optional[Callable[[Parsable], None]] = None
-
 
     def get_str_value(self) -> Optional[str]:
         """Gets the string value from the node
@@ -143,7 +144,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
             except:
                 return None
         return None
-    
+
     def get_bytes_value(self) -> Optional[bytes]:
         """Get the bytes value of the node
         Returns:
@@ -156,8 +157,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
             except:
                 return None
         return None
-        
-    
+
     def get_child_node(self, field_name: str) -> Optional[ParseNode]:
         """Gets the child node of the node
         Returns:
@@ -193,9 +193,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
         """
         values = self._node.split(',')
         if values:
-            return list(
-                map(lambda x: self._create_new_node(x).get_enum_value(enum_class), values)
-            )
+            return list(map(lambda x: self._create_new_node(x).get_enum_value(enum_class), values))
         return []
 
     def get_enum_value(self, enum_class: K) -> Optional[K]:
@@ -204,24 +202,23 @@ class FormParseNode(ParseNode, Generic[T, U]):
             Optional[K]: The enum value of the node
         """
         if self._node:
-                camel_case_key = None
-                if self._node.lower() == "none":
-                    # None is a reserved keyword in python
-                    camel_case_key = "None_"
-                else:
-                    camel_case_key = self._node[0].upper() + self._node[1:]
-                if camel_case_key in enum_class.__members__:
-                    return enum_class[camel_case_key]  # type: ignore
-                else:
-                    keys = camel_case_key.split(',')
-                    if len(keys) > 1:
-                        result = []
-                        for key in keys:
-                            key_name = key[0].upper() + key[1:]
-                            if key_name in enum_class.__members__:
-                                result.append(enum_class[key_name])
-                        return result
-                    raise Exception(f'Invalid key: {camel_case_key} for enum {enum_class}.')
+            camel_case_key = None
+            if self._node.lower() == "none":
+                # None is a reserved keyword in python
+                camel_case_key = "None_"
+            else:
+                camel_case_key = self._node[0].upper() + self._node[1:]
+            if camel_case_key in enum_class.__members__:
+                return enum_class[camel_case_key]  # type: ignore
+            keys = camel_case_key.split(',')
+            if len(keys) > 1:
+                result = []
+                for key in keys:
+                    key_name = key[0].upper() + key[1:]
+                    if key_name in enum_class.__members__:
+                        result.append(enum_class[key_name])
+                return result
+            raise Exception(f'Invalid key: {camel_case_key} for enum {enum_class}.')
         return None
 
     def get_object_value(self, factory: ParsableFactory[U]) -> U:
@@ -328,8 +325,8 @@ class FormParseNode(ParseNode, Generic[T, U]):
         new_node.on_before_assign_field_values = self.on_before_assign_field_values
         new_node.on_after_assign_field_values = self.on_after_assign_field_values
         return new_node
-    
-    def _get_fields(self, raw_value:str) -> Dict[str, str]:
+
+    def _get_fields(self, raw_value: str) -> Dict[str, str]:
         fields = raw_value.split('&')
         result = defaultdict(list)
         for field in fields:
@@ -343,8 +340,8 @@ class FormParseNode(ParseNode, Generic[T, U]):
         for key in result:
             result[key] = ','.join(result[key])
         return result
-            
-    def _sanitize_key(self, key:str) -> str:
+
+    def _sanitize_key(self, key: str) -> str:
         if not key:
             return key
         return unquote_plus(key.strip())
