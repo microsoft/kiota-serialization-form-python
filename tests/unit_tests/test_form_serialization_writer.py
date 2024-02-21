@@ -177,5 +177,17 @@ def test_write_object_value(user_1):
     form_serialization_writer.write_object_value("user", user_1)
     content = form_serialization_writer.get_serialized_content()
     content_string = content.decode('utf-8')
-    assert content_string == "user=id%3D8f841f30-e6e3-439a-a812-ebd369559c36%26deviceNames%3Ddevice1%26deviceNames%3Ddevice2%26numbers%3Done%252Ceight%26workDuration%3D2%253A00%253A00%26birthDay%3D2000-09-04%26startWorkTime%3D08%253A00%253A00%26createdDateTime%3D2022-01-27T12%253A59%253A45.596117%252B00%253A00%26otherPhones%3D123456789%26otherPhones%3D987654321%26jobTitle%3DAuditor%26intValue%3D1%26floatValue%3D3.14"
+    assert content_string == (
+        "user=id=8f841f30-e6e3-439a-a812-ebd369559c36&"
+        "deviceNames=device1&deviceNames=device2&"
+        "numbers=one%2Ceight&"
+        "workDuration=2%3A00%3A00&"
+        "birthDay=2000-09-04&"
+        "startWorkTime=08%3A00%3A00&"
+        "createdDateTime=2022-01-27T12%3A59%3A45.596117%2B00%3A00&"
+        "otherPhones=123456789&otherPhones=987654321&"
+        "jobTitle=Auditor&"
+        "intValue=1&"
+        "floatValue=3.14"
+    )
 

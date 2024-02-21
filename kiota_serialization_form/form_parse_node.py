@@ -11,7 +11,7 @@ from uuid import UUID
 import pendulum
 from kiota_abstractions.serialization import Parsable, ParsableFactory, ParseNode
 
-T = TypeVar("T")
+T = TypeVar("T", bool, str, int, float, UUID, datetime, timedelta, date, time, bytes)
 
 U = TypeVar("U", bound=Parsable)
 
@@ -167,7 +167,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
             return FormParseNode(self._fields[field_name])
         return None
 
-    def get_collection_of_primitive_values(self, primitive_type: T) -> Optional[List[T]]:
+    def get_collection_of_primitive_values(self, primitive_type: type) -> Optional[List[T]]:
         """Gets the collection of primitive values of the node
         Returns:
             List[T]: The collection of primitive values
@@ -181,9 +181,8 @@ class FormParseNode(ParseNode, Generic[T, U]):
             result = []
             for item in items:
                 current_parse_node = self._create_new_node(item)
-                method = getattr(
-                    current_parse_node, f'get_{primitive_type.__name__.lower()}_value'
-                )  # type: ignore
+                method_name = f"get_{primitive_type.__name__.lower()}_value"  # type: ignore
+                method = getattr(current_parse_node, method_name)
                 result.append(method())
             return result
         raise Exception(f"Encountered an unknown type during deserialization {primitive_type}")
@@ -329,17 +328,18 @@ class FormParseNode(ParseNode, Generic[T, U]):
 
     def _get_fields(self, raw_value: str) -> Dict[str, str]:
         fields = raw_value.split('&')
-        result = defaultdict(list)
+        field_values = defaultdict(list)
         for field in fields:
             if '=' in field:
                 key, value = field.split('=', 1)
                 key = self._sanitize_key(key)
                 value = value.strip()
-                result[key].append(value)
+                field_values[key].append(value)
 
         # Convert lists to comma-separated strings
-        for key in result:
-            result[key] = ','.join(result[key])  # type: ignore
+        result: Dict[str, str] = {}
+        for key in field_values:
+            result[key] = ','.join(field_values[key])
         return result
 
     def _sanitize_key(self, key: str) -> str:

@@ -41,7 +41,7 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[bool]): The boolean value to be written.
         """
-        if key and value or value is False:
+        if key and (value or value is False):
             self.write_str_value(key, str(value).lower())
 
     def write_int_value(self, key: Optional[str], value: Optional[int]) -> None:
@@ -50,7 +50,7 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[int]): The integer value to be written.
         """
-        if key and value or value == 0:
+        if key and (value or value == 0):
             self.write_str_value(key, str(value))
 
     def write_float_value(self, key: Optional[str], value: Optional[float]) -> None:
@@ -59,7 +59,7 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[float]): The float value to be written.
         """
-        if key and value or value == 0:
+        if key and (value or value == 0):
             self.write_str_value(key, str(value))
 
     def write_uuid_value(self, key: Optional[str], value: Optional[UUID]) -> None:
@@ -186,7 +186,7 @@ class FormSerializationWriter(SerializationWriter):
             additional_values_to_merge (tuple[Parsable]): The additional values to merge to the
             main value when serializing an intersection wrapper.
         """
-        if key and value or additional_values_to_merge:
+        if key and (value or additional_values_to_merge):
             temp_writer = self._create_new_writer()
 
             if value:
@@ -201,7 +201,9 @@ class FormSerializationWriter(SerializationWriter):
             if value and self._on_after_object_serialization:
                 self._on_after_object_serialization(value)
 
-            self.write_str_value(key, temp_writer.writer)
+            if len(self.writer) > 0:
+                self.writer += "&"
+            self.writer += f"{quote_plus(key.strip())}={temp_writer.writer}"
 
     def write_null_value(self, key: Optional[str]) -> None:
         """Writes a null value for the specified key.
@@ -300,7 +302,9 @@ class FormSerializationWriter(SerializationWriter):
                 temp_writer = self._create_new_writer()
                 for k, v in value.__dict__.items():
                     temp_writer.write_str_value(key, value.__dict__)
-                self.write_str_value(key, temp_writer.writer)
+                if len(self.writer) > 0:
+                    self.writer += "&"
+                self.writer += f"{quote_plus(key.strip())}={temp_writer.writer}"
 
     def write_any_value(self, key: Optional[str], value: Any) -> Any:
         """Writes the specified value to the stream with an optional given key.
