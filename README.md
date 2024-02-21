@@ -1,14 +1,21 @@
-# Project
+# Microsoft Kiota URI Form Encoded Serialization Library for Python
+[![PyPI version](https://badge.fury.io/py/microsoft-kiota-serialization-form.svg)](https://badge.fury.io/py/microsoft-kiota-serialization-form)
+[![CI Actions Status](https://github.com/microsoft/kiota-serialization-form-python/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/microsoft/kiota-serialization-form-python/actions)
+[![Downloads](https://pepy.tech/badge/microsoft-kiota-serialization-form)](https://pepy.tech/project/microsoft-kiota-serialization-form)
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+The Form Serialization Library for Python is the python `application/x-www-form-urlencoded` serialization library implementation.
 
-As the maintainer of this project, please make a few updates:
+A [Kiota](https://github.com/microsoft/kiota) generated project will need a reference to a form serialization package to handle `application/x-www-form-urlencoded payloads` from a supporting API endpoint.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+Read more about Kiota [here](https://github.com/microsoft/kiota/blob/main/README.md).
+
+## Using the Microsoft Kiota URI Form Encoded Serialization Library
+
+In order to use this library, install the package by running:
+
+```cmd
+pip install microsoft-kiota-serialization-form
+```
 
 ## Contributing
 
