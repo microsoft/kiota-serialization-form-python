@@ -181,8 +181,9 @@ class FormParseNode(ParseNode, Generic[T, U]):
             result = []
             for item in items:
                 current_parse_node = self._create_new_node(item)
-                method = getattr(current_parse_node,
-                                 f'get_{primitive_type.__name__.lower()}_value') # type: ignore
+                method = getattr(
+                    current_parse_node, f'get_{primitive_type.__name__.lower()}_value'
+                )  # type: ignore
                 result.append(method())
             return result
         raise Exception(f"Encountered an unknown type during deserialization {primitive_type}")
@@ -208,9 +209,9 @@ class FormParseNode(ParseNode, Generic[T, U]):
 
         if not self._node:
             return None
-        enum_values = [e.value for e in enum_class] # type: ignore
+        enum_values = [e.value for e in enum_class]  # type: ignore
         if self._node in enum_values:
-            return enum_class(self._node) # type: ignore
+            return enum_class(self._node)  # type: ignore
         values = self._node.split(',')
         if not len(values) > 1:
             raise Exception(f'Invalid value: {self._node} for enum {enum_class}.')
@@ -218,7 +219,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
         for value in values:
             if value not in enum_values:
                 raise Exception(f'Invalid value: {value} for enum {enum_class}.')
-            result.append(enum_class(value)) # type: ignore
+            result.append(enum_class(value))  # type: ignore
         return result
 
     def get_object_value(self, factory: ParsableFactory[U]) -> U:
@@ -328,7 +329,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
 
     def _get_fields(self, raw_value: str) -> Dict[str, str]:
         fields = raw_value.split('&')
-        result: Dict[str, Any] = {}
+        result = defaultdict(list)
         for field in fields:
             if '=' in field:
                 key, value = field.split('=', 1)
@@ -338,7 +339,7 @@ class FormParseNode(ParseNode, Generic[T, U]):
 
         # Convert lists to comma-separated strings
         for key in result:
-            result[key] = ','.join(result[key])
+            result[key] = ','.join(result[key])  # type: ignore
         return result
 
     def _sanitize_key(self, key: str) -> str:
