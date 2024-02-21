@@ -16,7 +16,6 @@ from .test_enum import TestEnum
 
 T = TypeVar('T')
 
-
 @dataclass
 class TestEntity(Parsable, AdditionalDataHolder):
     additional_data: Dict[str, Any] = field(default_factory=dict)
@@ -30,7 +29,6 @@ class TestEntity(Parsable, AdditionalDataHolder):
     created_date_time: Optional[datetime] = None
     office_location: Optional[str] = None
     
-
     @staticmethod
     def create_from_discriminator_value(parse_node: Optional[ParseNode] = None) -> TestEntity:
         """
@@ -80,4 +78,6 @@ class TestEntity(Parsable, AdditionalDataHolder):
         writer.write_datetime_value("createdDateTime", self.created_date_time)
         writer.write_str_value("officeLocation", self.office_location)
         writer.write_additional_data_value(self.additional_data)
+        
+    __test__ = False
         

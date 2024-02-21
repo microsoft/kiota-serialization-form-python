@@ -41,9 +41,8 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[bool]): The boolean value to be written.
         """
-        if not key or not value and value is not False:
-            return
-        self.write_str_value(key, str(value).lower())
+        if key and value or value is False:
+            self.write_str_value(key, str(value).lower())
 
     def write_int_value(self, key: Optional[str], value: Optional[int]) -> None:
         """Writes the specified integer value to the stream with an optional given key.
@@ -51,9 +50,8 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[int]): The integer value to be written.
         """
-        if not key or not value and value != 0:
-            return
-        self.write_str_value(key, str(value))
+        if key and value or value == 0:
+            self.write_str_value(key, str(value))
 
     def write_float_value(self, key: Optional[str], value: Optional[float]) -> None:
         """Writes the specified float value to the stream with an optional given key.
@@ -61,9 +59,8 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (Optional[float]): The float value to be written.
         """
-        if key and value value and value != 0:
-            return
-        return self.write_str_value(key, str(value))
+        if key and value or value == 0:
+            self.write_str_value(key, str(value))
 
     def write_uuid_value(self, key: Optional[str], value: Optional[UUID]) -> None:
         """Writes the specified uuid value to the stream with an optional given key.
@@ -113,6 +110,18 @@ class FormSerializationWriter(SerializationWriter):
         if key and value:
             self.write_str_value(key, str(value))
 
+    def write_bytes_value(self, key: Optional[str], value: bytes) -> None:
+        """Writes the specified byte array as a base64 string to the stream with an optional
+        given key.
+        Args:
+            key (Optional[str]): The key to be used for the written value. May be null.
+            value (bytes): The byte array to be written.
+        """
+        if key and isinstance(value, bytes):
+            base64_bytes = base64.b64encode(value)
+            base64_string = base64_bytes.decode('utf-8')
+            self.write_str_value(key, base64_string)
+
     def write_collection_of_primitive_values(
         self, key: Optional[str], values: Optional[List[T]]
     ) -> None:
@@ -122,17 +131,39 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             values (Optional[List[T]]): The collection of primitive values to be written.
         """
-        if isinstance(values, list):
-            result = []
+        primitive_types = [bool, str, int, float, UUID, datetime, timedelta, date, time, Enum]
+        if key and values:
             for val in values:
-                temp_writer = self._create_new_writer()
-                temp_writer.write_any_value(None, val)
-                result.append(temp_writer.value)
+                if type(val) in primitive_types:
+                    method = getattr(self, f'write_{type(val).__name__.lower()}_value')
+                    method(key, val)
 
-            if key:
-                self.writer[key] = result
-            else:
-                self.value = result
+    def write_collection_of_enum_values(
+        self, key: Optional[str], values: Optional[List[Enum]]
+    ) -> None:
+        """Writes the specified collection of enum values to the stream with an optional given key.
+        Args:
+            key (Optional[str]): The key to be used for the written value. May be null.
+            values Optional[List[Enum]): The enum values to be written.
+        """
+        if key and values:
+            if isinstance(values, list):
+                for val in values:
+                    if isinstance(val, Enum):
+                        self.write_str_value(key, str(val.value))
+
+    def write_enum_value(self, key: Optional[str], value: Optional[Enum]) -> None:
+        """Writes the specified enum value to the stream with an optional given key.
+        Args:
+            key (Optional[str]): The key to be used for the written value. May be null.
+            value (Optional[Enum]): The enum value to be written.
+        """
+        if key and value:
+            if isinstance(value, Enum):
+                self.write_str_value(key, str(value.value))
+            if isinstance(value, list):
+                values = ",".join([str(val.value) for val in value])
+                self.write_str_value(key, values)
 
     def write_collection_of_object_values(
         self, key: Optional[str], values: Optional[List[U]]
@@ -143,52 +174,7 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             values (Optional[List[U]]): The collection of model objects to be written.
         """
-        if isinstance(values, list):
-            obj_list = []
-            for val in values:
-                temp_writer = self._create_new_writer()
-                temp_writer.write_object_value(None, val)
-                obj_list.append(temp_writer.value)
-
-            if key:
-                self.writer[key] = obj_list
-            else:
-                self.value = obj_list
-
-    def write_collection_of_enum_values(
-        self, key: Optional[str], values: Optional[List[Enum]]
-    ) -> None:
-        """Writes the specified collection of enum values to the stream with an optional given key.
-        Args:
-            key (Optional[str]): The key to be used for the written value. May be null.
-            values Optional[List[Enum]): The enum values to be written.
-        """
-        if isinstance(values, list):
-            result = []
-            for val in values:
-                temp_writer = self._create_new_writer()
-                temp_writer.write_enum_value(None, val)
-                result.append(temp_writer.value)
-
-            if key:
-                self.writer[key] = result
-            else:
-                self.value = result
-
-    def write_bytes_value(self, key: Optional[str], value: bytes) -> None:
-        """Writes the specified byte array as a base64 string to the stream with an optional
-        given key.
-        Args:
-            key (Optional[str]): The key to be used for the written value. May be null.
-            value (bytes): The byte array to be written.
-        """
-        if isinstance(value, bytes):
-            base64_bytes = base64.b64encode(value)
-            base64_string = base64_bytes.decode('utf-8')
-            if key:
-                self.writer[key] = base64_string
-            else:
-                self.value = base64_string
+        raise Exception("Form serialization does not support collections.")
 
     def write_object_value(
         self, key: Optional[str], value: Optional[U], *additional_values_to_merge: U
@@ -200,7 +186,7 @@ class FormSerializationWriter(SerializationWriter):
             additional_values_to_merge (tuple[Parsable]): The additional values to merge to the
             main value when serializing an intersection wrapper.
         """
-        if value or additional_values_to_merge:
+        if key and value or additional_values_to_merge:
             temp_writer = self._create_new_writer()
 
             if value:
@@ -215,22 +201,7 @@ class FormSerializationWriter(SerializationWriter):
             if value and self._on_after_object_serialization:
                 self._on_after_object_serialization(value)
 
-            if key:
-                self.writer[key] = temp_writer.writer
-            else:
-                self.value = temp_writer.writer
-
-    def write_enum_value(self, key: Optional[str], value: Optional[Enum]) -> None:
-        """Writes the specified enum value to the stream with an optional given key.
-        Args:
-            key (Optional[str]): The key to be used for the written value. May be null.
-            value (Optional[Enum]): The enum value to be written.
-        """
-        if isinstance(value, Enum):
-            if key:
-                self.writer[key] = value.value
-            else:
-                self.value = value.value
+            self.write_str_value(key, temp_writer.writer)
 
     def write_null_value(self, key: Optional[str]) -> None:
         """Writes a null value for the specified key.
@@ -238,9 +209,7 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
         """
         if key:
-            self.writer[key] = None
-        else:
-            self.value = "null"
+            self.write_str_value(key, "null")
 
     def write_additional_data_value(self, value: Dict[str, Any]) -> None:
         """Writes the specified additional data to the stream.
@@ -249,7 +218,9 @@ class FormSerializationWriter(SerializationWriter):
         """
         if isinstance(value, dict):
             for key, val in value.items():
-                self.writer[key] = val
+                if isinstance(val, Parsable):
+                    raise Exception("Form serialization does not support nested objects")
+                self.write_any_value(key, val)
 
     def get_serialized_content(self) -> bytes:
         """Gets the value of the serialized content.
@@ -337,33 +308,37 @@ class FormSerializationWriter(SerializationWriter):
             value Any): The value to be written.
         """
         primitive_types = [bool, str, int, float, UUID, datetime, timedelta, date, time, Enum]
-        if value:
+        if key and value:
             value_type = type(value)
-            if key:
-                if value_type in primitive_types:
-                    method = getattr(self, f'write_{value_type.__name__.lower()}_value')
-                    method(key, value)
-                elif isinstance(value, Parsable):
-                    self.write_object_value(key, value)
-                elif hasattr(value, '__dict__'):
-                    self.write_non_parsable_object_value(key, value)
+            if value_type in primitive_types:
+                method = getattr(self, f'write_{value_type.__name__.lower()}_value')
+                method(key, value)
+            elif isinstance(value, list):
+                if all(isinstance(x, Enum) for x in value):
+                    self.write_collection_of_enum_values(key, value)
                 else:
-                    raise TypeError(
-                        f"Encountered an unknown type during serialization {value_type} \
-                            with key {key}"
-                    )
+                    self.write_collection_of_primitive_values(key, value)
+            elif isinstance(value, Parsable):
+                self.write_object_value(key, value)
+            elif hasattr(value, '__dict__'):
+                self.write_non_parsable_object_value(key, value)
             else:
-                if value_type in primitive_types:
-                    method = getattr(self, f'write_{value_type.__name__.lower()}_value')
-                    method(None, value)
-                elif isinstance(value, Parsable):
-                    self.write_object_value(None, value)
-                elif hasattr(value, '__dict__'):
-                    self.write_non_parsable_object_value(None, value)
-                else:
-                    raise TypeError(
-                        f"Encountered an unknown type during serialization {value_type}"
-                    )
+                raise TypeError(
+                    f"Encountered an unknown type during serialization {value_type} \
+                        with key {key}"
+                )
+            # else:
+            #     if value_type in primitive_types:
+            #         method = getattr(self, f'write_{value_type.__name__.lower()}_value')
+            #         method(None, value)
+            #     elif isinstance(value, Parsable):
+            #         self.write_object_value(None, value)
+            #     elif hasattr(value, '__dict__'):
+            #         self.write_non_parsable_object_value(None, value)
+            #     else:
+            #         raise TypeError(
+            #             f"Encountered an unknown type during serialization {value_type}"
+            #         )
 
     def _serialize_value(self, temp_writer: FormSerializationWriter, value: U):
         if on_before := self.on_before_object_serialization:

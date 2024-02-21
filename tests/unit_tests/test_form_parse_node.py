@@ -1,16 +1,15 @@
-import json
+import base64
 from datetime import date, datetime, time, timedelta
 from uuid import UUID
 
 import pytest
 
 from kiota_serialization_form.form_parse_node import FormParseNode
-
 from tests.helpers import TestEntity, TestEnum
 
 TEST_USER_FORM: str = (
     "displayName=Megan+Bowen&"
-    "numbers=one,two,thirtytwo&"
+    "numbers=one,two&"
     "givenName=Megan&"
     "accountEnabled=true&"
     "createdDateTime=2017-07-29T03:07:25Z&"
@@ -87,81 +86,11 @@ def test_get_timedelta_value():
     assert str(result) == '0:00:30'
 
 
-# def test_get_collection_of_primitive_values():
-#     parse_node = FormParseNode([12.1, 12.2, 12.3, 12.4, 12.5])
-#     result = parse_node.get_collection_of_primitive_values(float)
-#     assert result == [12.1, 12.2, 12.3, 12.4, 12.5]
-
-
-# def test_get_collection_of_primitive_values_no_type():
-#     parse_node = FormParseNode(["One", "Two", "Three", "Four", "Five"])
-#     result = parse_node.get_collection_of_primitive_values(None)
-#     assert result == ["One", "Two", "Three", "Four", "Five"]
-
-
 def test_get_bytes_value():
-    parse_node = FormParseNode('U2Ftd2VsIGlzIHRoZSBiZXN0')
+    parse_node = FormParseNode('SGVsbG8gd29ybGQ%3D')
     result = parse_node.get_bytes_value()
     assert isinstance(result, bytes)
-
-
-# def test_get_collection_of_enum_values():
-#     parse_node = FormParseNode(["dunhill", "oval"])
-#     result = parse_node.get_collection_of_enum_values(OfficeLocation)
-#     assert isinstance(result, list)
-#     assert result == [OfficeLocation.Dunhill, OfficeLocation.Oval]
-
-
-# def test_get_enum_value():
-#     parse_node = FormParseNode("dunhill")
-#     result = parse_node.get_enum_value(OfficeLocation)
-#     assert isinstance(result, OfficeLocation)
-#     assert result == OfficeLocation.Dunhill
-
-
-# def test_get_object_value(user1_json):
-#     parse_node = FormParseNode(json.loads(user1_json))
-#     result = parse_node.get_object_value(User)
-#     assert isinstance(result, User)
-#     assert result.id == UUID("8f841f30-e6e3-439a-a812-ebd369559c36")
-#     assert result.office_location == OfficeLocation.Dunhill
-#     assert isinstance(result.updated_at, datetime)
-#     assert isinstance(result.birthday, date)
-#     assert result.business_phones == ["+1 205 555 0108"]
-#     assert result.is_active is True
-#     assert result.mobile_phone is None
-
-
-# def test_get_collection_of_object_values(users_json):
-#     parse_node = FormParseNode(json.loads(users_json))
-#     result = parse_node.get_collection_of_object_values(User)
-#     assert isinstance(result[0], User)
-#     assert result[0].id == UUID("8f841f30-e6e3-439a-a812-ebd369559c36")
-#     assert result[0].office_location == OfficeLocation.Dunhill
-#     assert isinstance(result[0].updated_at, datetime)
-#     assert isinstance(result[0].birthday, date)
-#     assert result[0].business_phones == ["+1 205 555 0108"]
-#     assert result[0].is_active is True
-#     assert result[0].mobile_phone is None
-
-def test_gets_entity_properties_from_form_data():
-    parse_node = FormParseNode(TEST_USER_FORM)
-    result = parse_node.get_object_value(TestEntity)
-    assert isinstance(result, TestEntity)
-    assert result.id == UUID("48d31887-5fad-4d73-a9f5-3c356e68a038")
-    assert result.device_names == ["device1", "device2"]
-    assert result.numbers == [TestEnum.One, TestEnum.Two]
-    assert result.work_duration == timedelta(hours=1)
-    assert result.birthday == date(2017, 9, 4)
-    assert result.start_work_time == time(8, 0)
-    assert result.end_work_time == time(17, 0)
-    assert isinstance(result.created_date_time, datetime)
-    assert result.office_location == None
-    assert result.additional_data["otherPhones"]
-    assert result.additional_data["otherPhones"] == "123456789,987654321"
-    assert result.additional_data["mobilePhone"]
-    assert result.additional_data["accountEnabled"] == "true"
-    assert result.additional_data["jobTitle"] == "Auditor"
+    assert base64.b64decode(result) == b'Hello world'
     
 def test_get_collection_of_numerical_primitive_values():
     TEST_FORM_DATA = "numbers=1&numbers=2&numbers=3&"
@@ -198,12 +127,54 @@ def test_get_collection_of_uuid_primitive_values():
     
     result = uuid_node.get_collection_of_primitive_values(str)
     assert result == ["8f841f30-e6e3-439a-a812-ebd369559c36", "8f841f30-e6e3-439a-a812-ebd369559c36", "8f841f30-e6e3-439a-a812-ebd369559c36"]
+ 
+def test_get_collection_of_primitive_values_no_type():
+    with pytest.raises(Exception) as excinfo:
+        parse_node = FormParseNode("numbers=1&numbers=2&numbers=3&")
+        result = parse_node.get_collection_of_primitive_values(None)
+    assert "Primitive type for deserialization cannot be null" in str(excinfo.value)
+    
+def test_get_collection_of_enum_values():
+    TEST_FORM_DATA = "numbers=one&numbers=two&numbers=four&"
+    parse_node = FormParseNode(TEST_FORM_DATA)
+    enum_node = parse_node.get_child_node("numbers")
+    
+    result = enum_node.get_collection_of_enum_values(TestEnum)
+    assert result == [TestEnum.One, TestEnum.Two, TestEnum.Four]
+    
+def test_get_collection_of_enum_values_invalid_key():
+    TEST_FORM_DATA = "numbers=one&numbers=two&numbers=thirty+two&"
+    parse_node = FormParseNode(TEST_FORM_DATA)
+    enum_node = parse_node.get_child_node("numbers")
+    
+    with pytest.raises(Exception) as excinfo:
+        result = enum_node.get_collection_of_enum_values(TestEnum)
+    assert "Invalid value: thirty two" in str(excinfo.value)
     
 def test_get_collection_of_object_values():
     parse_node = FormParseNode(TEST_USER_FORM)
     with pytest.raises(Exception) as excinfo:
         result = parse_node.get_collection_of_object_values(TestEntity)
     assert "Collection of object values is not supported " in str(excinfo.value)
+
+def test_get_object_value():
+    parse_node = FormParseNode(TEST_USER_FORM)
+    result = parse_node.get_object_value(TestEntity)
+    assert isinstance(result, TestEntity)
+    assert result.id == UUID("48d31887-5fad-4d73-a9f5-3c356e68a038")
+    assert result.device_names == ["device1", "device2"]
+    assert result.numbers == [TestEnum.One, TestEnum.Two]
+    assert result.work_duration == timedelta(hours=1)
+    assert result.birthday == date(2017, 9, 4)
+    assert result.start_work_time == time(8, 0)
+    assert result.end_work_time == time(17, 0)
+    assert isinstance(result.created_date_time, datetime)
+    assert result.office_location == None
+    assert result.additional_data["otherPhones"]
+    assert result.additional_data["otherPhones"] == "123456789,987654321"
+    assert result.additional_data["mobilePhone"]
+    assert result.additional_data["accountEnabled"] == "true"
+    assert result.additional_data["jobTitle"] == "Auditor"
     
 def returns_default_if_child_node_does_not_exist():
     parse_node = FormParseNode(TEST_USER_FORM)

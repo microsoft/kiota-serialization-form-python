@@ -1,8 +1,10 @@
 from enum import Enum
 
 class TestEnum(Enum):
-    One = "one",
-    Two = "two",
-    Four = "four",
-    Eight = "eight",
-    Sixteen = "sixteen",
+    One ="one"
+    Two = "two"
+    Three = "three"
+    Four = "four"
+    Eight = "eight"
+    
+    __test__ = False

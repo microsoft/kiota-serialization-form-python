@@ -172,6 +172,9 @@ class FormParseNode(ParseNode, Generic[T, U]):
         Returns:
             List[T]: The collection of primitive values
         """
+        if not primitive_type:
+            raise Exception("Primitive type for deserialization cannot be null")
+
         primitive_types = {bool, str, int, float, UUID, datetime, timedelta, date, time, bytes}
         if primitive_type in primitive_types:
             items = self._node.split(',')
@@ -201,25 +204,41 @@ class FormParseNode(ParseNode, Generic[T, U]):
         Returns:
             Optional[K]: The enum value of the node
         """
-        if self._node:
-            camel_case_key = None
-            if self._node.lower() == "none":
-                # None is a reserved keyword in python
-                camel_case_key = "None_"
-            else:
-                camel_case_key = self._node[0].upper() + self._node[1:]
-            if camel_case_key in enum_class.__members__:
-                return enum_class[camel_case_key]  # type: ignore
-            keys = camel_case_key.split(',')
-            if len(keys) > 1:
-                result = []
-                for key in keys:
-                    key_name = key[0].upper() + key[1:]
-                    if key_name in enum_class.__members__:
-                        result.append(enum_class[key_name])
-                return result
-            raise Exception(f'Invalid key: {camel_case_key} for enum {enum_class}.')
-        return None
+
+        if not self._node:
+            return None
+        enum_values = [e.value for e in enum_class]
+        if self._node in enum_values:
+            return enum_class(self._node)
+        values = self._node.split(',')
+        if not len(values) > 1:
+            raise Exception(f'Invalid value: {self._node} for enum {enum_class}.')
+        result = []
+        for value in values:
+            if value not in enum_values:
+                raise Exception(f'Invalid value: {value} for enum {enum_class}.')
+            result.append(enum_class(value))
+        return result
+
+        # if self._node:
+        #     camel_case_key = None
+        #     if self._node.lower() == "none":
+        #         # None is a reserved keyword in python
+        #         camel_case_key = "None_"
+        #     else:
+        #         camel_case_key = self._node[0].upper() + self._node[1:]
+        #     if camel_case_key in enum_class.__members__:
+        #         return enum_class[camel_case_key]  # type: ignore
+        #     keys = camel_case_key.split(',')
+        #     if len(keys) > 1:
+        #         result = []
+        #         for key in keys:
+        #             key_name = key[0].upper() + key[1:]
+        #             if key_name in enum_class.__members__:
+        #                 result.append(enum_class[key_name])
+        #         return result
+        #     raise Exception(f'Invalid key: {camel_case_key} for enum {enum_class}.')
+        # return None
 
     def get_object_value(self, factory: ParsableFactory[U]) -> U:
         """Gets the model object value of the node
