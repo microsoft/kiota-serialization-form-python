@@ -295,11 +295,12 @@ class FormSerializationWriter(SerializationWriter):
             key (Optional[str]): The key to be used for the written value. May be null.
             value (object): The value to be written.
         """
-        if hasattr(value, '__dict__'):
-            if key:
-                self.writer[key] = value.__dict__
-            else:
-                self.value = value.__dict__
+        if key and value:
+            if hasattr(value, '__dict__'):
+                temp_writer = self._create_new_writer()
+                for k, v in value.__dict__.items():
+                    temp_writer.write_str_value(key, value.__dict__)
+                self.write_str_value(key, temp_writer.writer)
 
     def write_any_value(self, key: Optional[str], value: Any) -> Any:
         """Writes the specified value to the stream with an optional given key.
@@ -327,18 +328,6 @@ class FormSerializationWriter(SerializationWriter):
                     f"Encountered an unknown type during serialization {value_type} \
                         with key {key}"
                 )
-            # else:
-            #     if value_type in primitive_types:
-            #         method = getattr(self, f'write_{value_type.__name__.lower()}_value')
-            #         method(None, value)
-            #     elif isinstance(value, Parsable):
-            #         self.write_object_value(None, value)
-            #     elif hasattr(value, '__dict__'):
-            #         self.write_non_parsable_object_value(None, value)
-            #     else:
-            #         raise TypeError(
-            #             f"Encountered an unknown type during serialization {value_type}"
-            #         )
 
     def _serialize_value(self, temp_writer: FormSerializationWriter, value: U):
         if on_before := self.on_before_object_serialization:
