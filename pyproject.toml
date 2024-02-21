@@ -7,6 +7,7 @@ name = "microsoft-kiota-serialization-form"
 authors = [{name = "Microsoft", email = "graphtooling+python@microsoft.com"}]
 dependencies = [
     "microsoft-kiota_abstractions >=1.0.0,<2.0.0",
+    "pendulum >=3.0.0",
 ]
 license = {file = "LICENSE"}
 readme = "README.md"

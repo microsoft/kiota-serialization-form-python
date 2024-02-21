@@ -1,5 +1,5 @@
 """
-Implementation of Kiota Serialization Interfaces for URI-Form ecoded serialization
+Implementation of Kiota Serialization Interfaces for URI-Form encoded serialization
 """
 from ._version import VERSION
 

@@ -4,7 +4,7 @@ import warnings
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 from urllib.parse import unquote_plus
 from uuid import UUID
 
