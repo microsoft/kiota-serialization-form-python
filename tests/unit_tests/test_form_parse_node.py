@@ -5,7 +5,7 @@ from uuid import UUID
 import pytest
 
 from kiota_serialization_form.form_parse_node import FormParseNode
-from tests.helpers import TestEntity, TestEnum
+from ..helpers import TestEntity, TestEnum
 
 TEST_USER_FORM: str = (
     "displayName=Megan+Bowen&"

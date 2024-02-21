@@ -5,7 +5,7 @@ import pytest
 import pendulum
 from datetime import datetime, timedelta, date, time
 from kiota_serialization_form.form_serialization_writer import FormSerializationWriter
-from tests.helpers import TestEntity, TestEnum
+from ..helpers import TestEntity, TestEnum
 
 
 @pytest.fixture
