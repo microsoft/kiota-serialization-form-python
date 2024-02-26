@@ -12,7 +12,7 @@ pytest-cov==4.1.0
 
 toml==0.10.2
 
-typing-extensions==4.9.0
+typing-extensions==4.10.0
 
 yapf==0.40.2
 
