@@ -16,7 +16,7 @@ typing-extensions==4.10.0
 
 yapf==0.40.2
 
-microsoft-kiota-abstractions==1.2.0
+microsoft-kiota-abstractions==1.3.0
 
 pendulum==3.0.0
 
