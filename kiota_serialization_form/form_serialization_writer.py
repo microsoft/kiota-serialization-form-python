@@ -186,24 +186,23 @@ class FormSerializationWriter(SerializationWriter):
             additional_values_to_merge (tuple[Parsable]): The additional values to merge to the
             main value when serializing an intersection wrapper.
         """
-        if key and (value or additional_values_to_merge):
-            temp_writer = self._create_new_writer()
+        temp_writer = self._create_new_writer()
 
-            if value:
-                self._serialize_value(temp_writer, value)
+        if  value is not None:
+            self._serialize_value(temp_writer, value)
 
-            if additional_values_to_merge:
-                for additional_value in filter(lambda x: x is not None, additional_values_to_merge):
-                    self._serialize_value(temp_writer, additional_value)
-                    if on_after := self.on_after_object_serialization:
-                        on_after(additional_value)
+        for additional_value in filter(lambda x: x is not None, additional_values_to_merge):
+            self._serialize_value(temp_writer, additional_value)
+            if on_after := self.on_after_object_serialization:
+                on_after(additional_value)
 
-            if value and self._on_after_object_serialization:
-                self._on_after_object_serialization(value)
+        if value and self._on_after_object_serialization:
+            self._on_after_object_serialization(value)
 
-            if len(self.writer) > 0:
-                self.writer += "&"
-            self.writer += f"{quote_plus(key.strip())}={temp_writer.writer}"
+        if len(self.writer) > 0:
+            self.writer += "&"
+        self.writer += f"{quote_plus(key.strip()) if key is not None else ''}={temp_writer.writer}"
+
 
     def write_null_value(self, key: Optional[str]) -> None:
         """Writes a null value for the specified key.
