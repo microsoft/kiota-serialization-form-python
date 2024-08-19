@@ -188,7 +188,7 @@ class FormSerializationWriter(SerializationWriter):
         """
         temp_writer = self._create_new_writer()
 
-        if  value is not None:
+        if value is not None:
             self._serialize_value(temp_writer, value)
 
         for additional_value in filter(lambda x: x is not None, additional_values_to_merge):
