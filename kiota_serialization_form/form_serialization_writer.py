@@ -208,7 +208,6 @@ class FormSerializationWriter(SerializationWriter):
         self.writer += f"{quote_plus(key.strip()) if key is not None else ''}={temp_writer.writer}"
         self.depth -= 1
 
-
     def write_null_value(self, key: Optional[str]) -> None:
         """Writes a null value for the specified key.
         Args:
