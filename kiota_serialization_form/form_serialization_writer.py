@@ -18,6 +18,7 @@ class FormSerializationWriter(SerializationWriter):
 
     def __init__(self) -> None:
         self.writer: str = ""
+        self.depth = 0
 
         self._on_start_object_serialization: Optional[Callable[[Parsable, SerializationWriter],
                                                                None]] = None
@@ -186,6 +187,9 @@ class FormSerializationWriter(SerializationWriter):
             additional_values_to_merge (tuple[Parsable]): The additional values to merge to the
             main value when serializing an intersection wrapper.
         """
+        if self.depth > 0:
+            raise Exception("Form serialization does not support nested objects.")
+        self.depth += 1
         temp_writer = self._create_new_writer()
 
         if value is not None:
@@ -202,6 +206,7 @@ class FormSerializationWriter(SerializationWriter):
         if len(self.writer) > 0:
             self.writer += "&"
         self.writer += f"{quote_plus(key.strip()) if key is not None else ''}={temp_writer.writer}"
+        self.depth -= 1
 
 
     def write_null_value(self, key: Optional[str]) -> None:
