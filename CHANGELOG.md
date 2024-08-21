@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+## [0.1.1] - 2024-02-21
+
+### Added
+- Added a check to prevent form serialization from supporting nested
+### Removed
+- Removed a null check for keys during the serialization process.
+
+### Changed
+
+
 ## [0.1.0] - 2024-02-21
 
 ### Added
